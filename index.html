@@ -30,6 +30,7 @@
       padding: 16px;
     }
 
+    /* FULL-SCREEN CONFETTI CANVAS */
     #confettiCanvas {
       position: fixed;
       inset: 0;
@@ -59,22 +60,6 @@
     h1 {
       font-size: clamp(26px, 4vw, 44px);
       margin: 12px 0 18px;
-    }
-
-    /* TITLE HIDE ANIMATION */
-    .hide-title {
-      animation: fadeUp .4s ease forwards;
-    }
-
-    @keyframes fadeUp {
-      from {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-      to {
-        opacity: 0;
-        transform: translateY(-20px) scale(.95);
-      }
     }
 
     .button-zone {
@@ -173,17 +158,27 @@
                C140 210 90 180 90 120Z"
             fill="url(#fur)"/>
 
+      <path d="M110 92 L95 55 L140 78 Z" fill="#f2a97b"/>
+      <path d="M270 92 L285 55 L240 78 Z" fill="#f2a97b"/>
+
       <circle cx="160" cy="130" r="8"/>
       <circle cx="220" cy="130" r="8"/>
+
+      <path d="M190 144 C186 144 182 148 182 152
+               C182 160 190 164 190 170
+               C190 164 198 160 198 152
+               C198 148 194 144 190 144Z"
+            fill="#ff7aa2"/>
     </svg>
 
-    <h1 id="title">Ruqiya will you be my valentine?</h1>
+    <h1>Ruqiya will you be my valentine?</h1>
 
     <section class="button-zone" id="zone">
       <button id="yesBtn">Yes</button>
       <button id="noBtn">No</button>
     </section>
 
+    <!-- HINT -->
     <div class="hint" id="hint">“No” seems a bit shy 😈</div>
 
     <section class="result" id="result">
@@ -202,18 +197,21 @@
     const noBtn = document.getElementById("noBtn");
     const result = document.getElementById("result");
     const hint = document.getElementById("hint");
-    const title = document.getElementById("title");
 
+    /* ---------- CONFETTI ---------- */
     const confettiCanvas = document.getElementById("confettiCanvas");
 
     function resizeConfettiCanvas() {
       const dpr = Math.max(1, window.devicePixelRatio || 1);
-      confettiCanvas.width = window.innerWidth * dpr;
-      confettiCanvas.height = window.innerHeight * dpr;
+      confettiCanvas.width = Math.floor(window.innerWidth * dpr);
+      confettiCanvas.height = Math.floor(window.innerHeight * dpr);
+      confettiCanvas.style.width = "100vw";
+      confettiCanvas.style.height = "100vh";
     }
 
     resizeConfettiCanvas();
     window.addEventListener("resize", resizeConfettiCanvas);
+    window.addEventListener("orientationchange", () => setTimeout(resizeConfettiCanvas, 150));
 
     const confettiInstance = confetti.create(confettiCanvas, {
       resize: false,
@@ -222,23 +220,37 @@
 
     function fullScreenConfetti() {
       const end = Date.now() + 1600;
+
       (function frame() {
         confettiInstance({
           particleCount: 12,
           spread: 90,
           startVelocity: 45,
+          ticks: 180,
           origin: { x: Math.random(), y: Math.random() * 0.3 }
         });
         if (Date.now() < end) requestAnimationFrame(frame);
       })();
+
+      setTimeout(() => {
+        confettiInstance({
+          particleCount: 300,
+          spread: 140,
+          startVelocity: 60,
+          ticks: 220,
+          origin: { x: 0.5, y: 0.55 }
+        });
+      }, 300);
     }
 
+    /* ---------- YES BUTTON GROWS ---------- */
     let yesScale = 1;
     function growYes() {
       yesScale = Math.min(2.2, yesScale + 0.1);
       yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
     }
 
+    /* ---------- NO BUTTON RUNS AWAY ---------- */
     function clamp(n, min, max) {
       return Math.max(min, Math.min(max, n));
     }
@@ -261,6 +273,7 @@
 
       noBtn.style.left = newLeft + "px";
       noBtn.style.top = newTop + "px";
+      noBtn.style.transform = "none";
 
       growYes();
     }
@@ -274,16 +287,14 @@
       if (d < 140) moveNo(e.clientX, e.clientY);
     });
 
+    noBtn.addEventListener("click", e => e.preventDefault());
+
+    /* ---------- YES CLICK ---------- */
     yesBtn.addEventListener("click", () => {
-      title.classList.add("hide-title");
-
-      setTimeout(() => {
-        title.style.display = "none";
-      }, 400);
-
       zone.style.display = "none";
-      hint.style.display = "none";
+      hint.style.display = "none";     // HIDE THE HINT
       result.style.display = "block";
+      resizeConfettiCanvas();
       fullScreenConfetti();
     });
   </script>
